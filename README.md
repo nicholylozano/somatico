@@ -226,6 +226,10 @@ tabix -p vcf Mutect2-WGS-panel-b37.chr.vcf.gz
 --contamination-table WP312.contamination.table \
 -O WP312.filtered.pon.vcf.gz
 ```
+# VCF tools compare package
+```bash
+brew install vcftools
+```
 
 ```bash
 vcf-compare WP312.filtered.pon.vcf.gz ../WP312.filtered.chr.vcf.gz 
