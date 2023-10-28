@@ -32,9 +32,16 @@ brew install sratoolkit
 ```bash
 pip install parallel-fastq-dump
 ```
-
+## ESSE DEU ERRO
 ```bash
 echo "Aexyo" | vdb-config -i
+```
+# Trocar por esse
+```bash
+wget -c https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/3.0.0/sratoolkit.3.0.0-ubuntu64.tar.gz\
+tar -zxvf sratoolkit.3.0.0-ubuntu64.tar.gz\
+export PATH=$PATH://workspace/somaticoEP1/sratoolkit.3.0.0-ubuntu64/bin/\
+echo "Aexyo" | sratoolkit.3.0.0-ubuntu64/bin/vdb-config
 ```
 
 ```bash
