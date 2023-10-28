@@ -168,6 +168,11 @@ unzip gatk-4.2.2.0.zip
 ./gatk-4.2.2.0/gatk BedToIntervalList -I WP312_coverageBed20x.bed \
 -O WP312_coverageBed20x.interval_list -SD chr9.dict
 ```
+#Adicionando chr nos VCFs do Gnomad e PoN
+```bash
+grep "\#" af-only-gnomad.raw.sites.vcf > af-only-gnomad.raw.sites.chr.vcf
+grep  "^9" af-only-gnomad.raw.sites.vcf |  awk '{print("chr"$0)}' >> af-only-gnomad.raw.sites.chr.vcf
+```
 
 **indexing**
 
