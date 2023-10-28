@@ -11,11 +11,7 @@ brew install sratoolkit
 ```bash
 pip install parallel-fastq-dump
 ```
-## ESSE DEU ERRO
-```bash
-echo "Aexyo" | vdb-config -i
-```
-# Trocar por esse
+
 ```bash
 wget -c https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/3.0.0/sratoolkit.3.0.0-ubuntu64.tar.gz
 tar -zxvf sratoolkit.3.0.0-ubuntu64.tar.gz
@@ -72,7 +68,45 @@ bwa mem -t 10 -M -R "@RG\tID:$NOME\tSM:$NOME\tLB:$Biblioteca\tPL:$Plataforma" ch
 samtools rmdup WP312_sorted.bam WP312_sorted_rmdup.bam
 ```
 
+# Cobertura - MAKE BED Files
 
+# Instalação do bedtools
+```bash
+brew install bedtools
+```
+
+# Gerar arquivo BED a partir do arquivo BAM
+```bash
+bedtools bamtobed -i WP312_sorted_rmdup.bam > WP312_sorted_rmdup.bed
+```
+
+```bash
+bedtools merge -i WP312_sorted_rmdup.bed > WP312_sorted_rmdup_merged.bed
+```
+
+```bash
+bedtools sort -i WP312_sorted_rmdup_merged.bed > WP312_sorted_rmdup_merged_sorted.bed
+```
+
+# Cobertura Média
+```bash
+git clone https://github.com/circulosmeos/gdown.pl.git
+./gdown.pl/gdown.pl  https://drive.google.com/file/d/1pTMpZ2eIboPHpiLf22gFIQbXU2Ow26_E/view?usp=drive_link WP312_sorted_rmdup_F4.bam
+./gdown.pl/gdown.pl  https://drive.google.com/file/d/10utrBVW-cyoFPt5g95z1gQYQYTfXM4S7/view?usp=drive_link WP312_sorted_rmdup_F4.bam.bai
+```
+
+```bash
+bedtools coverage -a WP312_sorted_rmdup_merged_sorted.bed \
+-b WP312_sorted_rmdup_F4.bam -mean \
+> WP312_coverageBed.bed
+```
+
+# Filtro por total de reads >=20
+```bash
+cat WP312_coverageBed.bed | \
+awk -F "\t" '{if($4>=20){print}}' \
+> WP312_coverageBed20x.bed
+```
 
 ---
 # Roteiro Oficial - Simples
