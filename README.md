@@ -68,7 +68,9 @@ bwa mem -t 10 -M -R "@RG\tID:$NOME\tSM:$NOME\tLB:$Biblioteca\tPL:$Plataforma" ch
 
 # Retirar duplicata de PCR
 
+```bash
 samtools rmdup WP312_sorted.bam WP312_sorted_rmdup.bam
+```
 
 
 
