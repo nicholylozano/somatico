@@ -145,16 +145,28 @@ chr9.fa.gz: https://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr9.fa.
 ```bash
 wget -c https://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr9.fa.gz
 ```
-
----
-
-# Adicionando chr nos VCFs do Gnomad e PoN
-
-O arquivo `af-only-gnomad.raw.sites.vcf` (do bucket somatic-b37) não tem o `chr`na frente do nome do cromossomo. Precisamos adicionar para não gerar conflito de contigs de referência na hora de executar o GATK.
-
+# Instalar GATK4
 ```bash
-grep "\#" af-only-gnomad.raw.sites.vcf > af-only-gnomad.raw.sites.chr.vcf
-grep  "^9" af-only-gnomad.raw.sites.vcf |  awk '{print("chr"$0)}' >> af-only-gnomad.raw.sites.chr.vcf
+wget -c https://github.com/broadinstitute/gatk/releases/download/4.2.2.0/gatk-4.2.2.0.zip
+```
+
+# Unzip GATK4
+```bash
+unzip gatk-4.2.2.0.zip
+```
+# Gerar arquivo .dict
+```bash
+./gatk-4.2.2.0/gatk CreateSequenceDictionary -R chr9.fa -O chr9.dict
+```
+
+# Geral interval_list do ch9
+```bash
+./gatk-4.2.2.0/gatk ScatterIntervalsByNs -R chr9.fa -O chr9.interval_list -OT ACGT
+```
+# Converter BED para Interval_list
+```bash
+./gatk-4.2.2.0/gatk BedToIntervalList -I WP312_coverageBed20x.bed \
+-O WP312_coverageBed20x.interval_list -SD chr9.dict
 ```
 
 **indexing**
@@ -175,16 +187,6 @@ tabix -p vcf Mutect2-WGS-panel-b37.chr.vcf.gz
 ```
 
 # GATK4 - Mutect Call (Refs hg19 com chr)
-Instalar GATK4
-```bash
-wget -c https://github.com/broadinstitute/gatk/releases/download/4.2.2.0/gatk-4.2.2.0.zip
-```
-
-Unzip GATK4
-```bash
-unzip gatk-4.2.2.0.zip
-```
-
 ```bash
 ./gatk-4.2.2.0/gatk GetPileupSummaries \
 	-I WP312_sorted_rmdup.bam  \
