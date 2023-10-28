@@ -1,24 +1,3 @@
-# Somático EP2
-
-```
-Lucas Cruz
-Nathalia Correa
-Renato Puga
-```
----
-# Roteiro Oficial - Completo
-
-Se for utilizar o mesmo Workspace do EP1, crie um diretório chamado hg38 e mova tudo para dentro dele. Depois, comece do zero e siga as etapas.
-
-```bash
-mkdir hg38
-```
-
-```bash
-mv * hg38
-```
-> Um alerta de que o diretório hg38 não pode ser movido para dentro dele deve aparecer.
-
 ## Tenho o arquivo .FASTQ?
 
 ## Não?
@@ -38,9 +17,9 @@ echo "Aexyo" | vdb-config -i
 ```
 # Trocar por esse
 ```bash
-wget -c https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/3.0.0/sratoolkit.3.0.0-ubuntu64.tar.gz\
-tar -zxvf sratoolkit.3.0.0-ubuntu64.tar.gz\
-export PATH=$PATH://workspace/somaticoEP1/sratoolkit.3.0.0-ubuntu64/bin/\
+wget -c https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/3.0.0/sratoolkit.3.0.0-ubuntu64.tar.gz
+tar -zxvf sratoolkit.3.0.0-ubuntu64.tar.gz
+export PATH=$PATH://workspace/somatico/sratoolkit.3.0.0-ubuntu64/bin/
 echo "Aexyo" | sratoolkit.3.0.0-ubuntu64/bin/vdb-config
 ```
 
