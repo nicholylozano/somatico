@@ -134,6 +134,15 @@ tabix -p vcf Mutect2-WGS-panel-b37.chr.vcf.gz
 ```
 
 # GATK4 - Mutect Call (Refs hg19 com chr)
+Instalar GATK4
+```bash
+wget -c https://github.com/broadinstitute/gatk/releases/download/4.2.2.0/gatk-4.2.2.0.zip
+```
+
+Unzip GATK4
+```bash
+unzip gatk-4.2.2.0.zip
+```
 
 ```bash
 ./gatk-4.2.2.0/gatk GetPileupSummaries \
