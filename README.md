@@ -31,7 +31,9 @@ time parallel-fastq-dump --sra-id SRR8856724 \
 --gzip
 ```
 ## Referência chr9 hg19
+```bash
 wget -c https://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr9.fa.gz
+```
 
 BWA para mapeamento dos arquivos FASTQ 
 
