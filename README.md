@@ -1,3 +1,8 @@
+# Roteiro Oficial - Simples
+
+A amostras WP312 agora será executado com a versão do genoma humano HG19.
+A única parte que muda do EP1 é a das referências
+
 ## Tenho o arquivo .FASTQ?
 
 ## Não?
@@ -26,11 +31,42 @@ time parallel-fastq-dump --sra-id SRR8856724 \
 --split-files \
 --gzip
 ```
+
+**AS Referências do Genoma hg19 (FASTA, VCFs)**
+
+Os arquivos de Referência: **Panel of Normal (PoN), Gnomad AF**
+
+> https://console.cloud.google.com/storage/browser/gatk-best-practices/somatic-b37?project=broad-dsde-outreach
+
+# Os arquivos de Referência: Panel of Normal (PoN), Gnomad AF e Exac common:
+
+> https://console.cloud.google.com/storage/browser/gatk-best-practices/somatic-hg38?project=broad-dsde-outreach
+
+```bash
+wget -c https://storage.googleapis.com/gatk-best-practices/somatic-b37/Mutect2-WGS-panel-b37.vcf
+```
+
+```bash
+wget -c https://storage.googleapis.com/gatk-best-practices/somatic-b37/Mutect2-WGS-panel-b37.vcf.idx
+```
+
+```bash
+wget -c  https://storage.googleapis.com/gatk-best-practices/somatic-b37/af-only-gnomad.raw.sites.vcf
+```
+
+```bash
+wget -c  https://storage.googleapis.com/gatk-best-practices/somatic-b37/af-only-gnomad.raw.sites.vcf.idx
+```
+
+> Arquivo no formato FASTA do genoma humano hg19
+
+Diretório Download UCSC hg19:https://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/
+chr9.fa.gz: https://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr9.fa.gz
+
 ## Referência chr9 hg19
 ```bash
 wget -c https://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr9.fa.gz
 ```
-
 
 BWA para mapeamento dos arquivos FASTQ 
 
@@ -48,6 +84,7 @@ gunzip chr9.fa.gz
 bwa index chr9.fa
 ```
 
+Samtools faidx
 ```
 brew install samtools 
 ```
@@ -64,9 +101,12 @@ bwa mem -t 10 -M -R "@RG\tID:$NOME\tSM:$NOME\tLB:$Biblioteca\tPL:$Plataforma" ch
 ```
 
 # Retirar duplicata de PCR
-
 ```bash
 samtools rmdup WP312_sorted.bam WP312_sorted_rmdup.bam
+```
+# Indexando arquivo BAM rmdup
+```
+time samtools index WP312_sorted_rmdup.bam 
 ```
 
 # Cobertura - MAKE BED Files
@@ -109,43 +149,6 @@ awk -F "\t" '{if($4>=20){print}}' \
 > WP312_coverageBed20x.bed
 ```
 
----
-# Roteiro Oficial - Simples
-
-A amostras WP312 agora será executado com a versão do genoma humano HG19.
-A única parte que muda do EP1 é a das referências
-
-**AS Referências do Genoma hg19 (FASTA, VCFs)**
-
-Os arquivos de Referência: **Panel of Normal (PoN), Gnomad AF**
-
-> https://console.cloud.google.com/storage/browser/gatk-best-practices/somatic-b37?project=broad-dsde-outreach
-
-```bash
-wget -c https://storage.googleapis.com/gatk-best-practices/somatic-b37/Mutect2-WGS-panel-b37.vcf
-```
-
-```bash
-wget -c https://storage.googleapis.com/gatk-best-practices/somatic-b37/Mutect2-WGS-panel-b37.vcf.idx
-```
-
-```bash
-wget -c  https://storage.googleapis.com/gatk-best-practices/somatic-b37/af-only-gnomad.raw.sites.vcf
-```
-
-```bash
-wget -c  https://storage.googleapis.com/gatk-best-practices/somatic-b37/af-only-gnomad.raw.sites.vcf.idx
-```
-
-
-> Arquivo no formato FASTA do genoma humano hg19
-
-Diretório Download UCSC hg19:https://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/
-chr9.fa.gz: https://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr9.fa.gz
-
-```bash
-wget -c https://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr9.fa.gz
-```
 # Instalar GATK4
 ```bash
 wget -c https://github.com/broadinstitute/gatk/releases/download/4.2.2.0/gatk-4.2.2.0.zip
