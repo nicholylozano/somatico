@@ -1,13 +1,9 @@
-# Roteiro Oficial - Simples
+# SomaticoEP2
+Execução do pipeline de somático, utilizando amostras WP312 e Hg19 como referência.
 
-A amostras WP312 agora será executado com a versão do genoma humano HG19.
-A única parte que muda do EP1 é a das referências
+## Arquivos FASTq
 
-## Tenho o arquivo .FASTQ?
-
-## Não?
-
-Instalar (sratoolskit) e fazer Download do arquivo WP312.
+Download e instalação do pacote a ser utilizado
 
 ```bash
 brew install sratoolkit
@@ -16,7 +12,7 @@ brew install sratoolkit
 ```bash
 pip install parallel-fastq-dump
 ```
-
+Download do arquivo WP312.
 ```bash
 wget -c https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/3.0.0/sratoolkit.3.0.0-ubuntu64.tar.gz
 tar -zxvf sratoolkit.3.0.0-ubuntu64.tar.gz
@@ -31,16 +27,58 @@ time parallel-fastq-dump --sra-id SRR8856724 \
 --split-files \
 --gzip
 ```
+## Instalação dos pacotes necessários para análise
+BWA
+```bash
+brew install bwa 
+```
+Samtools
+```bash
+brew install samtools
+```
+Bedtools
+```bash
+brew install bedtools
+```
+GATK
+```bash
+wget -c https://github.com/broadinstitute/gatk/releases/download/4.2.2.0/gatk-4.2.2.0.zip
+unzip gatk-4.2.2.0.zip 
+```
+Vcftools
+```bash
+brew install vcftools
+```
+# Download e indexação do chr9
+Download
+```bash
+wget -c https://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr9.fa.gz
+gunzip chr9.fa.gz
+```
+Indexação
+```bash
+bwa index chr9.fa
+samtools faidx chr9.fa
+```
+# Mapeamento
+Nesse trabalho, o mapeamento será feito apenas com o chr9
+```bash
+NOME=WP312; Biblioteca=Nextera; Plataforma=illumina;
+bwa mem -t 10 -M -R "@RG\tID:$NOME\tSM:$NOME\tLB:$Biblioteca\tPL:$Plataforma" chr9.fa \
+SRR8856724_1.fastq.gz SRR8856724_2.fastq.gz | samtools view -F4 -Sbu -@2 - | samtools sort -m4G -@2 -o WP312_sorted.bam
+```
 
-**AS Referências do Genoma hg19 (FASTA, VCFs)**
+```bash
+time samtools index WP312_sorted.bam
+```
 
-Os arquivos de Referência: **Panel of Normal (PoN), Gnomad AF**
-
-> https://console.cloud.google.com/storage/browser/gatk-best-practices/somatic-b37?project=broad-dsde-outreach
-
-# Os arquivos de Referência: Panel of Normal (PoN), Gnomad AF e Exac common:
-
-> https://console.cloud.google.com/storage/browser/gatk-best-practices/somatic-hg38?project=broad-dsde-outreach
+# Remoção das duplicatas de PCR
+```bash
+time samtools rmdup WP312_sorted.bam WP312_sorted_rmdup.bam
+time samtools index WP312_sorted_rmdup.bam
+```
+# Download dos arquivos de referência (hg19)
+Panel of Normal (PoN), Gnomad e AF: https://console.cloud.google.com/storage/browser/gatk-best-practices/somatic-b37?project=broad-dsde-outreach
 
 ```bash
 wget -c https://storage.googleapis.com/gatk-best-practices/somatic-b37/Mutect2-WGS-panel-b37.vcf
@@ -58,82 +96,12 @@ wget -c  https://storage.googleapis.com/gatk-best-practices/somatic-b37/af-only-
 wget -c  https://storage.googleapis.com/gatk-best-practices/somatic-b37/af-only-gnomad.raw.sites.vcf.idx
 ```
 
-> Arquivo no formato FASTA do genoma humano hg19
+# Geração do arquivo bed com Cobertura 20x
 
-Diretório Download UCSC hg19:https://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/
-chr9.fa.gz: https://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr9.fa.gz
-
-## Referência chr9 hg19
-```bash
-wget -c https://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr9.fa.gz
-```
-
-BWA para mapeamento dos arquivos FASTQ 
-
-```
-brew install bwa 
-```
-
-BWA index do arquivo chr9.fa.gz
-
-```
-gunzip chr9.fa.gz
-```
-
-```
-bwa index chr9.fa
-```
-
-Samtools faidx
-```
-brew install samtools 
-```
-
-```
-samtools faidx chr9.fa
-```
-
-Combinar com pipes: bwa + samtools view e sort
-
-```
-NOME=WP312; Biblioteca=Nextera; Plataforma=illumina;
-bwa mem -t 10 -M -R "@RG\tID:$NOME\tSM:$NOME\tLB:$Biblioteca\tPL:$Plataforma" chr9.fa SRR8856724_1.fastq.gz SRR8856724_2.fastq.gz | samtools view -F4 -Sbu -@2 - | samtools sort -m4G -@2 -o WP312_sorted.bam
-```
-
-# Retirar duplicata de PCR
-```bash
-samtools rmdup WP312_sorted.bam WP312_sorted_rmdup.bam
-```
-# Indexando arquivo BAM rmdup
-```
-time samtools index WP312_sorted_rmdup.bam 
-```
-
-# Cobertura - MAKE BED Files
-
-# Instalação do bedtools
-```bash
-brew install bedtools
-```
-
-# Gerar arquivo BED a partir do arquivo BAM
 ```bash
 bedtools bamtobed -i WP312_sorted_rmdup.bam > WP312_sorted_rmdup.bed
-```
-
-```bash
 bedtools merge -i WP312_sorted_rmdup.bed > WP312_sorted_rmdup_merged.bed
-```
-
-```bash
 bedtools sort -i WP312_sorted_rmdup_merged.bed > WP312_sorted_rmdup_merged_sorted.bed
-```
-
-# Cobertura Média
-```bash
-git clone https://github.com/circulosmeos/gdown.pl.git
-./gdown.pl/gdown.pl  https://drive.google.com/file/d/1pTMpZ2eIboPHpiLf22gFIQbXU2Ow26_E/view?usp=drive_link WP312_sorted_rmdup.bam
-./gdown.pl/gdown.pl  https://drive.google.com/file/d/10utrBVW-cyoFPt5g95z1gQYQYTfXM4S7/view?usp=drive_link WP312_sorted_rmdup.bam.bai
 ```
 
 ```bash
@@ -142,45 +110,17 @@ bedtools coverage -a WP312_sorted_rmdup_merged_sorted.bed \
 > WP312_coverageBed.bed
 ```
 
-# Filtro por total de reads >=20
 ```bash
 cat WP312_coverageBed.bed | \
 awk -F "\t" '{if($4>=20){print}}' \
 > WP312_coverageBed20x.bed
 ```
 
-# Instalar GATK4
-```bash
-wget -c https://github.com/broadinstitute/gatk/releases/download/4.2.2.0/gatk-4.2.2.0.zip
-```
+# Adição de 'chr' nos arquivos de referência
 
-# Unzip GATK4
-```bash
-unzip gatk-4.2.2.0.zip
-```
-# Gerar arquivo .dict
-```bash
-./gatk-4.2.2.0/gatk CreateSequenceDictionary -R chr9.fa -O chr9.dict
-```
-
-# Geral interval_list do ch9
-```bash
-./gatk-4.2.2.0/gatk ScatterIntervalsByNs -R chr9.fa -O chr9.interval_list -OT ACGT
-```
-# Converter BED para Interval_list
-```bash
-./gatk-4.2.2.0/gatk BedToIntervalList -I WP312_coverageBed20x.bed \
--O WP312_coverageBed20x.interval_list -SD chr9.dict
-```
-#Adicionando chr nos VCFs do Gnomad e PoN
 ```bash
 grep "\#" af-only-gnomad.raw.sites.vcf > af-only-gnomad.raw.sites.chr.vcf
 grep  "^9" af-only-gnomad.raw.sites.vcf |  awk '{print("chr"$0)}' >> af-only-gnomad.raw.sites.chr.vcf
-```
-
-**indexing**
-
-```bash
 bgzip af-only-gnomad.raw.sites.chr.vcf
 tabix -p vcf af-only-gnomad.raw.sites.chr.vcf.gz
 ```
@@ -188,14 +128,27 @@ tabix -p vcf af-only-gnomad.raw.sites.chr.vcf.gz
 ```bash
 grep "\#" Mutect2-WGS-panel-b37.vcf > Mutect2-WGS-panel-b37.chr.vcf 
 grep  "^9" Mutect2-WGS-panel-b37.vcf |  awk '{print("chr"$0)}' >> Mutect2-WGS-panel-b37.chr.vcf 
-```
-
-```bash
 bgzip Mutect2-WGS-panel-b37.chr.vcf 
 tabix -p vcf Mutect2-WGS-panel-b37.chr.vcf.gz
 ```
 
-# GATK4 - Mutect Call (Refs hg19 com chr)
+# Análise de contaminação na amostra
+Para realizar a análise, precisamos gerar um arquivo .dict
+
+```bash
+./gatk-4.2.2.0/gatk CreateSequenceDictionary -R chr9.fa -O chr9.dict
+```
+
+```bash
+./gatk-4.2.2.0/gatk ScatterIntervalsByNs -R chr9.fa -O chr9.interval_list -OT ACGT
+```
+
+```bash
+./gatk-4.2.2.0/gatk BedToIntervalList -I WP312_coverageBed20x.bed \
+-O WP312_coverageBed20x.interval_list -SD chr9.dict
+```
+Tabela de contraminação
+
 ```bash
 ./gatk-4.2.2.0/gatk GetPileupSummaries \
 	-I WP312_sorted_rmdup.bam  \
@@ -205,12 +158,13 @@ tabix -p vcf Mutect2-WGS-panel-b37.chr.vcf.gz
 ```
 
 ```bash
-./gatk-4.2.2.0/gatk CalculateContamination \
+ ./gatk-4.2.2.0/gatk CalculateContamination \
 -I WP312.table \
--O WP312.contamination.table
+-O WP312.contamination.table 
 ```
 
-**Cuidado:** Use esse parâmetro quando a referência for a correta, mas esteja fora de ordenação: `--disable-sequence-dictionary-validation`
+# GATK Mutect2
+Chamada de variantes
 
 ```bash
 ./gatk-4.2.2.0/gatk Mutect2 \
@@ -224,36 +178,50 @@ tabix -p vcf Mutect2-WGS-panel-b37.chr.vcf.gz
 ```
 
 ```bash
-./gatk-4.2.2.0/gatk FilterMutectCalls \
+  ./gatk-4.2.2.0/gatk FilterMutectCalls \
 -R chr9.fa \
 -V WP312.somatic.pon.vcf.gz \
 --contamination-table WP312.contamination.table \
 -O WP312.filtered.pon.vcf.gz
 ```
-# VCF tools compare package
+
+# Comparação dos arquivos vcf
+Download dos arquivos vcf da amostra (WP312)
+https://drive.google.com/drive/folders/1m2qmd0ca2Nwb7qcK58ER0zC8-1_9uAiE
+
+Adição de 'chr' no arquivo
 ```bash
-brew install vcftools
+zgrep "\#" WP312.filtered.vcf.gz > header.txt
+zgrep -v "\#" WP312.filtered.vcf.gz | awk '{print("chr"$0)}' > variants.txt
+cat header.txt variants.txt > WP312.filtered.chr.vcf
+bgzip WP312.filtered.chr.vcf
+tabix WP312.filtered.chr.vcf.gz
+```
+Filtro para chr9
+```bash
+zgrep "^\#\|chr9" WP312.filtered.chr.vcf.gz > WP312.filtered.chr9.vcf
+bgzip  WP312.filtered.chr9.vcf
+tabix WP312.filtered.chr9.vcf.gz
 ```
 
+Comparação
 ```bash
-vcf-compare WP312.filtered.pon.vcf.gz ../WP312.filtered.chr.vcf.gz 
+vcf-compare WP312.filtered.pon.vcf.gz WP312.filtered.chr9.vcf.gz
 ```
-
-```bash
+O resultado deve ser esse
 # This file was generated by vcf-compare.
-# The command line was: vcf-compare(v0.1.14-12-gcdb80b8) WP312.filtered.pon.vcf.gz ../WP312.filtered.chr.vcf.gz
+# The command line was: vcf-compare(v0.1.14-12-gcdb80b8) WP312.filtered.pon.vcf.gz WP312.filtered.chr9.vcf.gz
 #
 #VN 'Venn-Diagram Numbers'. Use `grep ^VN | cut -f 2-` to extract this part.
 #VN The columns are: 
 #VN        1  .. number of sites unique to this particular combination of files
 #VN        2- .. combination of files and space-separated number, a fraction of sites in the file
-VN      169     ../WP312.filtered.chr.vcf.gz (1.0%)     WP312.filtered.pon.vcf.gz (0.2%)
-VN      16982   ../WP312.filtered.chr.vcf.gz (99.0%)
-VN      77871   WP312.filtered.pon.vcf.gz (99.8%)
+VN      169     WP312.filtered.chr9.vcf.gz (25.8%)      WP312.filtered.pon.vcf.gz (0.2%)
+VN      487     WP312.filtered.chr9.vcf.gz (74.2%)
+VN      77879   WP312.filtered.pon.vcf.gz (99.8%)
 #SN Summary Numbers. Use `grep ^SN | cut -f 2-` to extract this part.
 SN      Number of REF matches:  168
 SN      Number of ALT matches:  166
 SN      Number of REF mismatches:       1
 SN      Number of ALT mismatches:       2
 SN      Number of samples in GT comparison:     0
-```
